@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhubcreds')
+        DOCKERHUB_CREDENTIALS = credentials('Dockerhubcreds')
         IMAGE_NAME = 'snadig/flask-demo-private'
     }
 
