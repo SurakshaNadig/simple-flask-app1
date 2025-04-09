@@ -2,49 +2,33 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'snadig/simple-flask-app'
-        IMAGE_TAG = 'latest'
+        DOCKERHUB_CREDENTIALS = credentials('Dockerhubcreds')
+        IMAGE_NAME = 'yourusername/flask-demo-private'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                script {
-                    // Debugging step: List files in the workspace to check for the .git directory
-                    sh 'ls -la'
-
-                    // Checkout from GitHub
-                    git credentialsId: 'GitHub-PAT', url: 'https://github.com/SurakshaNadig/simple-flask-app.git', branch: 'main'
-                }
+                git 'https://github.com/SurakshaNadig/simple-flask-app1'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    dockerImage = docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
                 }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'Dockerhubcreds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerhubcreds') {
+                        dockerImage.push()
+                    }
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Build and push to Docker Hub succeeded!"
-        }
-        failure {
-            echo "❌ Build or push failed. Check logs above for details."
         }
     }
 }
