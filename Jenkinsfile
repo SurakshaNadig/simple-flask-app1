@@ -9,15 +9,19 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'GitHub-PAT', url: 'https://github.com/SurakshaNadig/simple-flask-app.git', branch: 'main'
+                script {
+                    // Debugging step: List files in the workspace to check for the .git directory
+                    sh 'ls -la'
+
+                    // Checkout from GitHub
+                    git credentialsId: 'GitHub-PAT', url: 'https://github.com/SurakshaNadig/simple-flask-app.git', branch: 'main'
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Make sure Docker is installed and available
-                    sh 'docker --version' // To verify Docker is working
                     sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
@@ -26,15 +30,10 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'Dockerhubcreds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    script {
-                        // Make sure Docker is working
-                        sh 'docker --version' // Check Docker status before login
-
-                        sh """
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                        """
-                    }
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
                 }
             }
         }
