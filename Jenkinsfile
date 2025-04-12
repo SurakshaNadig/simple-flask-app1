@@ -4,12 +4,13 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('Dockerhubcreds')
         IMAGE_NAME = 'snadig/flask-demo-private'
+	GITHUB_NAME = 'https://github.com/SurakshaNadig/simple-flask-app1.git'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/SurakshaNadig/simple-flask-app1'
+                git clone {GITHUB_NAME}
             }
         }
 
